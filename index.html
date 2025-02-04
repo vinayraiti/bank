@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Account Management</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <h1>Bank of Working</h1>
+
+    <div id="loginSection" class="container col-12 col-md-4 offset-md-4">
+        <h2 class="text-center">Login to Your Account</h2>
+        <div class="form-group">
+            <label for="accountNumber">Account Number</label>
+            <input type="text" id="accountNumber" class="form-control" placeholder="HINT: 1234567890">
+        </div>
+        <div class="form-group">
+            <label for="accountPassword">Password</label>
+            <input type="password" id="accountPassword" class="form-control" placeholder="HINT: 1234">
+        </div>
+        <button class="btn-custom" onclick="login()">Log In</button>
+    </div>
+
+    <div id="accountSection" class="container col-12 col-md-6 offset-md-3 hidden">
+        <h2 class="text-center">Account Dashboard</h2>
+        <div class="row text-center">
+            <div class="col-4">
+                <button class="btn-custom" onclick="handleDepositClick()">Deposit</button>
+            </div>
+            <div class="col-4">
+                <button class="btn-custom" onclick="handleWithdrawClick()">Withdraw</button>
+            </div>
+            <div class="col-4">
+                <button class="btn-custom" onclick="handleBalanceClick()">Check Balance</button>
+            </div>
+        </div>
+
+        <div id="depositForm" class="hidden mt-4">
+            <h3>Deposit Money</h3>
+            <div class="form-group">
+                <label for="depositAmount">Amount to Deposit</label>
+                <input type="number" id="depositAmount" class="form-control" placeholder="Amount in INR">
+            </div>
+            <button class="btn-custom" onclick="depositMoney()">Deposit</button>
+            <a href="#" class="back-link" onclick="backToDashboard()">Back to Dashboard</a>
+        </div>
+
+        <div id="withdrawForm" class="hidden mt-4">
+            <h3>Withdraw Money</h3>
+            <div class="form-group">
+                <label for="withdrawAmount">Amount to Withdraw</label>
+                <input type="number" id="withdrawAmount" class="form-control" placeholder="Amount in INR">
+            </div>
+            <button class="btn-custom" onclick="withdrawMoney()">Withdraw</button>
+            <a href="#" class="back-link" onclick="backToDashboard()">Back to Dashboard</a>
+        </div>
+
+        <div id="balanceForm" class="hidden mt-4">
+            <h3>Your Account Balance</h3>
+            <p id="balanceResult"></p>
+            <a href="#" class="back-link" onclick="backToDashboard()">Back to Dashboard</a>
+        </div>
+
+        <button class="btn-custom" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="errorModalLabel">Error</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="errorMessage"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+
+    <script>
+        let accountBalance = parseFloat(localStorage.getItem('accountBalance')) || 10000;
+        let isLoggedIn = false;
+        const correctPassword = '1234';
+
+        function login() {
+            const accountNumber = document.getElementById('accountNumber').value;
+            const accountPassword = document.getElementById('accountPassword').value;
+
+            if (accountNumber === '1234567890' && accountPassword === correctPassword) {
+                isLoggedIn = true;
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('accountSection').classList.remove('hidden');
+            } else {
+                showErrorMessage('Invalid credentials, please try again.');
+            }
+        }
+
+        function showErrorMessage(message) {
+            const errorMessageElement = document.getElementById('errorMessage');
+            errorMessageElement.innerText = message;
+
+            const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+            errorModal.show();
+        }
+
+        function promptForPassword(action) {
+            const userPassword = prompt('Please enter your password:');
+            if (userPassword === correctPassword) {
+                if (action === 'deposit') {
+                    showDeposit();
+                } else if (action === 'withdraw') {
+                    showWithdraw();
+                } else if (action === 'balance') {
+                    showBalance();
+                }
+            } else {
+                alert('Incorrect password. Please try again.');
+            }
+        }
+
+        function handleDepositClick() {
+            promptForPassword('deposit');
+        }
+
+        function handleWithdrawClick() {
+            promptForPassword('withdraw');
+        }
+
+        function handleBalanceClick() {
+            promptForPassword('balance');
+        }
+
+        function showDeposit() {
+            resetForms();
+            document.getElementById('depositForm').classList.remove('hidden');
+        }
+
+        function showWithdraw() {
+            resetForms();
+            document.getElementById('withdrawForm').classList.remove('hidden');
+        }
+
+        function showBalance() {
+            resetForms();
+            document.getElementById('balanceForm').classList.remove('hidden');
+            document.getElementById('balanceResult').innerText = `Your current balance is ₹${accountBalance}.`;
+        }
+
+        function resetForms() {
+            document.getElementById('depositForm').classList.add('hidden');
+            document.getElementById('withdrawForm').classList.add('hidden');
+            document.getElementById('balanceForm').classList.add('hidden');
+            document.getElementById('balanceResult').innerText = '';
+        }
+
+        function depositMoney() {
+            const depositAmount = parseFloat(document.getElementById('depositAmount').value);
+            if (depositAmount > 0) {
+                accountBalance += depositAmount;
+                localStorage.setItem('accountBalance', accountBalance);
+                alert(`₹${depositAmount} deposited successfully!`);
+                document.getElementById('depositAmount').value = '';
+            } else {
+                alert('Please enter a valid deposit amount.');
+            }
+        }
+
+        function withdrawMoney() {
+            const withdrawAmount = parseFloat(document.getElementById('withdrawAmount').value);
+            if (withdrawAmount > 0 && withdrawAmount <= accountBalance) {
+                accountBalance -= withdrawAmount;
+                localStorage.setItem('accountBalance', accountBalance);
+                alert(`₹${withdrawAmount} withdrawn successfully!`);
+                document.getElementById('withdrawAmount').value = '';
+            } else {
+                alert('Insufficient balance or invalid withdrawal amount.');
+            }
+        }
+
+        function backToDashboard() {
+            resetForms();
+            document.getElementById('accountSection').classList.remove('hidden');
+        }
+
+        function logout() {
+            isLoggedIn = false;
+            localStorage.removeItem('accountBalance');
+            accountBalance = 10000;
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('accountSection').classList.add('hidden');
+            document.getElementById('accountNumber').value = '';
+            document.getElementById('accountPassword').value = '';
+        }
+    </script>
+
+</body>
+
+</html>
